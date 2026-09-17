@@ -1,59 +1,77 @@
-## What is a Data Warehouse?
+## Importance of Relational Databases:
 ---
-* Data Warehouse is a system (including processes, technologies & data representations that enables support for analytical processing)
+* Standardization of data model: Once your data is transformed into the rows and columns format, your data is standardized and you can query it with SQL
+* Flexibility in adding and altering tables: Relational databases gives you flexibility to add tables, alter tables, add and remove data.
+* Data Integrity: Data Integrity is the backbone of using a relational database.
+* Structured Query Language (SQL): A standard language can be used to access the data with a predefined language.
+* Simplicity : Data is systematically stored and modeled in tabular format.
+* Intuitive Organization: The spreadsheet format is intuitive but intuitive to data modeling in relational databases.
 
-* Goals of a Data Warehouse:
-    * Simple to understand
-    * Performant
-    * Quality Assured
-    * Handles new business questions well
-    * Secure
-
-## Architecture
+## OLAP vs OLTP:
 ---
-* Several possible architectures to building a Data Warehouse
-1. **Kimball's Bus Architecture**:
-![Kimball's Bus Architecture](snapshots/kimball.PNG)
-    * Results in common dimension data models shared by different business departments
-    * Data is not kept at an aggregated level, rather they are at the atomic level
-    * Organized by business processes, used by different departments 
-2. **Independent Data Marts**:
-![Independent Data Marts](snapshots/datamart.PNG)
-    * Independent Data Marts have ETL processes that are designed by specific business departments to meet their analytical needs
-    * Different fact tables for the same events, no conformed dimensions
-    * Uncoordinated efforts can lead to inconsistent views
-    * Generally discouraged
-3. **Inmon's Corporate Information Factory**:
-![Inmon's Corporate Information Factory](snapshots/cif.PNG)
-    * The Enterprise Data Warehouse provides a normalized data architecture before individual departments build on it
-    * 2 ETL Process
-        * Source systems -> 3NF DB
-        * 3NF DB -> Departmental Data Marts
-    * The Data Marts use a source 3NF model (single integrated source of truth) and add denormalization based on department needs
-    * Data marts dimensionally modelled & unlike Kimball's dimensional models, they are mostly aggregated
-4. **Hybrid Kimball Bus & Inmon CIF**:
-![Hybrid Kimball Bus & Inmon CIF](snapshots/hybrid.PNG)
+* Online Analytical Processing (OLAP):
+Databases optimized for these workloads allow for complex analytical and ad hoc queries, including aggregations. These type of databases are optimized for reads.
 
-## OLAP Cubes
+* Online Transactional Processing (OLTP):
+Databases optimized for these workloads allow for less complex queries in large volume. The types of queries for these databases are read, insert, update, and delete.
+
+* The key to remember the difference between OLAP and OLTP is analytics (A) vs transactions (T). If you want to get the price of a shoe then you are using OLTP (this has very little or no aggregations). If you want to know the total stock of shoes a particular store sold, then this requires using OLAP (since this will require aggregations).
+
+## Normal Forms:
 ---
-* An OLAP Cube is an aggregation of a fact metric on a number of dimensions
+### Objectives:
+1. To free the database from unwanted insertions, updates, & deletion dependencies
+2. To reduce the need for refactoring the database as new types of data are introduced
+3. To make the relational model more informative to users
+4. To make the database neutral to the query statistics
 
-* OLAP cubes need to store the finest grain of data in case drill-down is needed
+### Types of Normal Forms:
+#### First Normal Form (1NF):
+* Atomic values: each cell contains unique and single values
+* Be able to add data without altering tables
+* Separate different relations into different tables
+* Keep relationships between tables together with foreign keys
 
-* Operations:
-1. Roll-up & Drill-Down
-    * Roll-Up: eg, from sales at city level, sum up sales of each city by country
-    * Drill-Down: eg, decompose the sales of each city into smaller districts
-2. Slice & Dice
-    * Slice: Reduce N dimensions to N-1 dimensions by restricting one dimension to a single value
-    * Dice: Same dimensions but computing a sub-cube by restricting some of the values of the dimensions
-    Eg month in ['Feb', 'Mar'] and movie in ['Avatar', 'Batman']
+#### Second Normal Form (2NF):
+* Have reached 1NF
+* All columns in the table must rely on the Primary Key
 
-* Query Optimization
-    * Business users typically want to slice, dice, rollup and drill-down
-    * Each sub-combination goes through all the facts table
-    * Using CUBE operation "GROUP by CUBE" and saving the output is usually enough to answer forthcoming aggregations from business users without having to process the whole facts table again
+#### Third Normal Form (3NF):
+* Must be in 2nd Normal Form
+* No transitive dependencies
+* Remember, transitive dependencies you are trying to maintain is that to get from A-> C, you want to avoid going through B.
 
-* Serving OLAP Cubes
-    * Approach 1: Pre-aggregate the OLAP cubes and save them on a special purpose non-relational database (MOLAP)
-    * Approach 2: Compute the OLAP Cubes on the fly from existing relational databases where the dimensional model resides (ROLAP)
+When to use 3NF:
+When you want to update data, we want to be able to do in just 1 place.
+
+## Denormalization:
+---
+JOINS on the database allow for outstanding flexibility but are extremely slow. If you are dealing with heavy reads on your database, you may want to think about denormalizing your tables. You get your data into normalized form, and then you proceed with denormalization. So, denormalization comes after normalization.
+
+## Normalize vs Denormalize:
+---
+Normalization is about trying to increase data integrity by reducing the number of copies of the data. Data that needs to be added or updated will be done in as few places as possible.
+
+Denormalization is trying to increase performance by reducing the number of joins between tables (as joins can be slow). Data integrity will take a bit of a potential hit, as there will be more copies of the data (to reduce JOINS).
+
+## Star Schema:
+---
+* Simplest style of data mart schema
+* Consist of 1 or more fact tables referencing multiple dimension tables
+
+### Benefits:
+* Denormalize tables, simplify queries and provide fast aggregations
+
+### Drawbacks:
+* Issues that come with denormalization
+* Data Integrity
+* Decrease Query Flexibility
+* Many to many relationship -- simplified
+
+## Snowflake Schema:
+---
+* Logical arrangement of tables in a multidimensional database
+* Represented by centralized fact tables that are connected to multiple dimensions
+* Dimensions of snowflake schema are elaborated, having multiple levels of relationships, child tables having multiple parents
+* Star schema is a special, simplified case of snowflake schema
+* Star schema does not allow for one to many relationships while snowflake schema does
